@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
+    <artifactId>awsS3Plugin</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+    <properties>
+        <teamcity-version>9.0.3</teamcity-version>
+        <testng-version>6.9.10</testng-version>
+        <mockito-version>1.10.19</mockito-version>
+    </properties>
+    <repositories>
+        <repository>
+            <id>JetBrains</id>
+            <url>http://repository.jetbrains.com/all</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>JetBrains</id>
+            <url>http://repository.jetbrains.com/all</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jetbrains.teamcity</groupId>
+                    <artifactId>teamcity-sdk-maven-plugin</artifactId>
+                    <version>RELEASE</version>
+                    <configuration>
+                        <!-- <teamcityDir>/path/to/tc/distro</teamcityDir> -->
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <modules>
+        <module>awsS3Plugin-server</module>
+        <module>awsS3Plugin-agent</module>
+        <module>awsS3Plugin-common</module>
+        <module>build</module>
+    </modules>
+</project>

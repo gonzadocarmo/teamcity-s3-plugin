@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+       default-autowire="constructor">
+
+    <bean id="AWSS3AgentBuildRunner" class="com.dcn.teamcity.awsS3Plugin.AWSS3AgentBuildRunner"/>
+
+    <bean id="uploadAdapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3UploadAdapter" />
+    <bean id="deleteAdapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3DeleteAdapter" />
+    <bean id="adapterHelper" class="com.dcn.teamcity.awsS3Plugin.AWSS3BuildProcessAdapterHelper" />
+
+    <bean id="awsS3Adapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3Adapter" />
+</beans>
