@@ -1,30 +1,35 @@
 package com.dcn.teamcity.awsS3Plugin;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.BuildProblemTypes;
+import jetbrains.buildServer.agent.BuildProgressLogger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.testng.Assert.*;
 
 /**
- * Created by sg0216948 on 7/12/16.
  *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3BuildProcessAdapterHelperTest {
 
     private AWSS3BuildProcessAdapterHelper helper;
+    private BuildProgressLogger myLogger;
 
     @BeforeMethod
     public void setUp() throws Exception {
-        helper = new AWSS3BuildProcessAdapterHelper();
+        myLogger = mock(BuildProgressLogger.class);
+        helper = new AWSS3BuildProcessAdapterHelper().withLogger(myLogger);
     }
 
     @Test
@@ -60,19 +65,48 @@ public class AWSS3BuildProcessAdapterHelperTest {
     public void testCreateClient() throws Exception {
         final String publicKey = "AAA";
         final String privateKey = "ZZZ";
+        final String region = "us-west-2";
 
-        AmazonS3 result = helper.createClient(publicKey, privateKey);
+        AmazonS3 result = helper.createClient(publicKey, privateKey, region);
         assertTrue(result instanceof AmazonS3Client);
+        assertEquals(result.getRegion().toAWSRegion().getName(), Regions.US_WEST_2.getName());
+    }
+
+    @Test
+    public void testCreateClientFailureWhenInvalidRegion() throws Exception {
+        final String publicKey = "AAA";
+        final String privateKey = "ZZZ";
+        final String region = "invalid-region-name";
+
+        AmazonS3 result = helper.createClient(publicKey, privateKey, region);
+        assertTrue(result instanceof AmazonS3Client);
+        assertEquals(result.getRegion().toAWSRegion().getName(), Regions.DEFAULT_REGION.getName());
+        verify(myLogger).warning("Region 'invalid-region-name' not valid. Using default region: 'us-west-2'...");
     }
 
     @Test
     public void testCreateClientWithProxy() throws Exception {
         final String publicKey = "AAA";
         final String privateKey = "ZZZ";
+        final String region = "sa-east-1";
         final String proxyUrl = "http://localhost:3128";
 
-        AmazonS3 result = helper.createClientWithProxy(publicKey, privateKey, proxyUrl);
+        AmazonS3 result = helper.createClientWithProxy(publicKey, privateKey, region, proxyUrl);
         assertTrue(result instanceof AmazonS3Client);
+        assertEquals(result.getRegion().toAWSRegion().getName(), Regions.SA_EAST_1.getName());
+    }
+
+    @Test
+    public void testCreateClientWithProxyFailureWhenInvalidRegion() throws Exception {
+        final String publicKey = "AAA";
+        final String privateKey = "ZZZ";
+        final String region = "invalid-region-name-again";
+        final String proxyUrl = "http://localhost:3128";
+
+        AmazonS3 result = helper.createClientWithProxy(publicKey, privateKey, region, proxyUrl);
+        assertTrue(result instanceof AmazonS3Client);
+        assertEquals(result.getRegion().toAWSRegion().getName(), Regions.DEFAULT_REGION.getName());
+        verify(myLogger).warning("Region 'invalid-region-name-again' not valid. Using default region: 'us-west-2'...");
     }
 
     @Test

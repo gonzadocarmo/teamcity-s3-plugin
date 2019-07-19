@@ -4,8 +4,9 @@
   <parent>
     <artifactId>awsS3Plugin</artifactId>
     <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
   </parent>
   <artifactId>awsS3Plugin-common</artifactId>
+  <version>0.1.0</version>
   <packaging>jar</packaging>
 </project>
