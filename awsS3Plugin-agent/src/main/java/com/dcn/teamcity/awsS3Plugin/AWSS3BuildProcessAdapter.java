@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by sg0216948 on 7/11/16.
  *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
@@ -99,7 +98,7 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
     public boolean runProcess() {
         final AgentRunnerBuildParametersModel model = helper.createModel(runnerParametersMap);
 
-        AmazonS3 s3Client = createClient(model.getPublicKey(), model.getPrivateKey(), model.getHttpProxy());
+        AmazonS3 s3Client = createClient(model.getPublicKey(), model.getPrivateKey(), model.getBucketRegion(), model.getHttpProxy());
 
         emptyBucketIfNeeded(model.getBucketName(), s3Client, model.isEmptyBucketBeforeUpload());
         uploadFilesToBucket(model.getBucketName(), model.getArtifactsPath(), s3Client, model.getHttpHeaderCacheControl());
@@ -108,17 +107,17 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
     }
 
     @NotNull
-    private AmazonS3 createClient(String publicKey, String privateKey, String httpProxy) {
+    private AmazonS3 createClient(String publicKey, String privateKey, String region, String httpProxy) {
         AmazonS3 s3Client;
         if (httpProxy != null) {
             try {
-                s3Client = helper.createClientWithProxy(publicKey, privateKey, httpProxy);
+                s3Client = helper.createClientWithProxy(publicKey, privateKey, region, httpProxy);
             } catch (Exception e) {
                 myLogger.warning(String.format(ERROR_PROXY, httpProxy));
-                s3Client = helper.createClient(publicKey, privateKey);
+                s3Client = helper.createClient(publicKey, privateKey, region);
             }
         } else {
-            s3Client = helper.createClient(publicKey, privateKey);
+            s3Client = helper.createClient(publicKey, privateKey, region);
         }
         return s3Client;
     }

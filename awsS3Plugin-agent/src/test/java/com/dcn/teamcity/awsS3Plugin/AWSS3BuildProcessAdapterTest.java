@@ -58,18 +58,19 @@ public class AWSS3BuildProcessAdapterTest {
 
         awsS3AdapterMock = new AWSS3Adapter(uploadAdapterMock, deleteAdapterMock);
         processAdapterHelperMock = mock(AWSS3BuildProcessAdapterHelper.class);
-        when(processAdapterHelperMock.createClient(anyString(), anyString())).thenReturn(amazonS3Mock);
-        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString())).thenReturn(amazonS3Mock);
+        when(processAdapterHelperMock.createClient(anyString(), anyString(), anyString())).thenReturn(amazonS3Mock);
+        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString(), anyString())).thenReturn(amazonS3Mock);
     }
 
     @Test
     public void testRunProcessNoValidProxy() throws Exception {
         final String bucketName = "someName";
+        final String bucketRegion = "someRegion";
         final String uploadTaskLogBucket = uploadTaskLog + bucketName;
         final String httpProxy = "http://username@notvalid:::";
 
-        mockBuilderCreateModel(bucketName, "false", null, httpProxy);
-        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString())).thenThrow(Exception.class);
+        mockBuilderCreateModel(bucketName, bucketRegion, "false", null, httpProxy);
+        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString(), anyString())).thenThrow(Exception.class);
 
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
@@ -91,9 +92,10 @@ public class AWSS3BuildProcessAdapterTest {
     @Test
     public void testRunProcessNoDeleteNoFilesToUpload() throws Exception {
         final String bucketName = "someName";
+        final String bucketRegion = "someRegion";
         final String uploadTaskLogBucket = uploadTaskLog + bucketName;
 
-        mockBuilderCreateModel(bucketName, "false", null, null);
+        mockBuilderCreateModel(bucketName, bucketRegion, "false", null, null);
 
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
@@ -111,17 +113,18 @@ public class AWSS3BuildProcessAdapterTest {
     }
 
     @NotNull
-    private void mockBuilderCreateModel(String bucketName, String needToEmptyBucket, String sourcePaths, String httpProxy) {
+    private void mockBuilderCreateModel(String bucketName, String bucketRegion, String needToEmptyBucket, String sourcePaths, String httpProxy) {
         final String publicKey = "";
         final String privateKey = publicKey;
 
-        AgentRunnerBuildParametersModel model = new AgentRunnerBuildParametersModel(bucketName, publicKey, privateKey, Boolean.valueOf(needToEmptyBucket), sourcePaths, null, httpProxy);
+        AgentRunnerBuildParametersModel model = new AgentRunnerBuildParametersModel(bucketName, bucketRegion, publicKey, privateKey, Boolean.valueOf(needToEmptyBucket), sourcePaths, null, httpProxy);
         when(processAdapterHelperMock.createModel(anyMap())).thenReturn(model);
     }
 
     @Test
     public void testRunProcessNoDeleteSomeFilesToUpload() throws Exception {
         final String bucketName = "someName";
+        final String bucketRegion = "someRegion";
         final String uploadTaskLogBucket = uploadTaskLog + bucketName;
         final String desiredArtifactPaths = "src,examples/subfolder";
         final String sourcePath = "src";
@@ -144,7 +147,7 @@ public class AWSS3BuildProcessAdapterTest {
         artifacts.add(artifactsCollection);
 
         when(processAdapterHelperMock.getArtifactsCollections(desiredArtifactPaths, extensionHolderMock, agentCheckoutDirectoryMock)).thenReturn(artifacts);
-        mockBuilderCreateModel(bucketName, "false", desiredArtifactPaths, null);
+        mockBuilderCreateModel(bucketName, bucketRegion, "false", desiredArtifactPaths, null);
 
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
@@ -178,6 +181,7 @@ public class AWSS3BuildProcessAdapterTest {
     @Test
     public void testRunProcessNoDeleteSomeFilesToUploadButNotMatchingCriteria() throws Exception {
         final String bucketName = "someName";
+        final String bucketRegion = "someRegion";
         final String uploadTaskLogBucket = uploadTaskLog + bucketName;
         final String desiredArtifactPaths = "examples/subfolder";
         final String sourcePath = "src";
@@ -194,7 +198,7 @@ public class AWSS3BuildProcessAdapterTest {
         artifacts.add(artifactsCollection);
 
         when(processAdapterHelperMock.getArtifactsCollections(desiredArtifactPaths, extensionHolderMock, agentCheckoutDirectoryMock)).thenReturn(artifacts);
-        mockBuilderCreateModel(bucketName, "false", desiredArtifactPaths, null);
+        mockBuilderCreateModel(bucketName, bucketRegion, "false", desiredArtifactPaths, null);
 
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
@@ -213,7 +217,8 @@ public class AWSS3BuildProcessAdapterTest {
     @Test
     public void testRunProcessDeleteFiles() throws Exception {
         final String bucketName = "someBucket";
-        mockBuilderCreateModel(bucketName, "true", "", null);
+        final String bucketRegion = "someRegion";
+        mockBuilderCreateModel(bucketName, bucketRegion, "true", "", null);
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
         adapter.runProcess();

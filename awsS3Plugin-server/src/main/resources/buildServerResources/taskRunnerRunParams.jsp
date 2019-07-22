@@ -1,10 +1,14 @@
+<%@ page import="com.amazonaws.regions.Regions" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
 <%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@include file="constants.jsp" %>
 
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
-<%@include file="constants.jsp" %>
+
+<c:set var="awsRegions" value="<%=Regions.values()%>" scope="request"/>
+<c:set var="awsRegionValue" value="${propertiesBean.properties[UI_PARAM_BUCKET_REGION] ? propertiesBean.properties[UI_PARAM_BUCKET_REGION] : Regions.DEFAULT_REGION.getName()}"/>
 
 <l:settingsGroup title="Amazon S3 bucket">
     <tr>
@@ -28,11 +32,13 @@
             </label>
         </th>
         <td>
-            <props:textProperty name="${UI_PARAM_BUCKET_REGION}" className="longField"/>
+            <props:selectProperty name="${UI_PARAM_BUCKET_REGION}" className="longField">
+                <c:forEach items="${awsRegions}" var="awsRegion">
+                    <props:option value="${awsRegion.getName()}" currValue="${awsRegionValue}">${awsRegion.getName()}</props:option>
+                </c:forEach>
+            </props:selectProperty>
             <span class="error" id="error_${UI_PARAM_BUCKET_REGION}"></span>
-            <span class="smallNote">
-                E.g. 'us-east-1' or 'us-west-2'.
-            </span>
+
         </td>
     </tr>
 </l:settingsGroup>

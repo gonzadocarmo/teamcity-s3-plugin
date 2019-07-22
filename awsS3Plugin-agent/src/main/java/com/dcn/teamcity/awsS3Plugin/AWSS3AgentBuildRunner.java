@@ -14,25 +14,23 @@ public class AWSS3AgentBuildRunner implements AgentBuildRunner {
 
     protected final ExtensionHolder myExtensionHolder;
     private final AWSS3Adapter awsS3Adapter;
-    private final AWSS3BuildProcessAdapterHelper adapterHelper;
 
     public AWSS3AgentBuildRunner(@NotNull final ExtensionHolder extensionHolder,
-                                 final @NotNull AWSS3Adapter awsS3Adapter,
-                                 final @NotNull AWSS3BuildProcessAdapterHelper adapterHelper) {
+                                 final @NotNull AWSS3Adapter awsS3Adapter) {
         myExtensionHolder = extensionHolder;
         this.awsS3Adapter = awsS3Adapter;
-        this.adapterHelper = adapterHelper;
     }
 
     @Override
     public BuildProcess createBuildProcess(AgentRunningBuild agentRunningBuild,
                                            BuildRunnerContext buildRunnerContext) {
-        return new AWSS3BuildProcessAdapter(buildRunnerContext.getBuild().getBuildLogger(),
+        BuildProgressLogger logger = buildRunnerContext.getBuild().getBuildLogger();
+        return new AWSS3BuildProcessAdapter(logger,
                 buildRunnerContext.getRunnerParameters(),
                 agentRunningBuild.getCheckoutDirectory(),
                 myExtensionHolder,
                 awsS3Adapter,
-                adapterHelper);
+                new AWSS3BuildProcessAdapterHelper().withLogger(logger));
     }
 
     @Override
