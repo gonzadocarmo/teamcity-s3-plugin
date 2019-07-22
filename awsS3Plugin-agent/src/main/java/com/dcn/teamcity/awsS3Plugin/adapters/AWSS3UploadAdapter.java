@@ -9,8 +9,6 @@ import jetbrains.buildServer.util.StringUtil;
 import java.io.File;
 
 /**
- * Created by sg0216948 on 7/12/16.
- *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3UploadAdapter {

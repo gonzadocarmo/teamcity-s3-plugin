@@ -3,8 +3,6 @@ package com.dcn.teamcity.awsS3Plugin.adapters;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Created by sg0216948 on 7/13/16.
- *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3Adapter {

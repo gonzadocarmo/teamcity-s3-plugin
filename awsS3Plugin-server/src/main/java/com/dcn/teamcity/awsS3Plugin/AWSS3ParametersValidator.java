@@ -11,8 +11,6 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Created by sg0216948 on 7/10/16.
- *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3ParametersValidator implements PropertiesProcessor {

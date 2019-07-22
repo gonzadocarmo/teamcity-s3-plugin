@@ -1,8 +1,5 @@
 package com.dcn.teamcity.awsS3Plugin;
 
-/**
- * Created by sg0216948 on 7/9/16.
- */
 public interface PluginConstants {
 
     String UI_PARAM_BUCKET_NAME = "Bucket";

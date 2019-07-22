@@ -11,8 +11,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by sg0216948 on 7/13/16.
- *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3DeleteAdapterTest {

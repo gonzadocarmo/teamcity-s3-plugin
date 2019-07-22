@@ -35,7 +35,7 @@ public class AWSS3BuildProcessAdapterHelperTest {
     @Test
     public void testCreateBuildProblemDataWithFilePath() throws Exception {
         final String bucket_name = "my-bucket-with-long-name";
-        final String file_path = "/Users/sg0216948/Downloads/TeamCity/buildAgent/work/56eb2e988bd79b91/.gitignore";
+        final String file_path = "/Users/somebody/Downloads/TeamCity/buildAgent/work/56eb2e988bd79b91/.gitignore";
         final String exception_message = "my-bucket";
 
         BuildProblemData result = helper.createBuildProblemData(bucket_name, file_path, exception_message);
