@@ -9,7 +9,7 @@
 
     <bean id="uploadAdapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3UploadAdapter" />
     <bean id="deleteAdapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3DeleteAdapter" />
-    <bean id="adapterHelper" class="com.dcn.teamcity.awsS3Plugin.AWSS3BuildProcessAdapterHelper" />
+    <bean id="adapterHelper" class="com.dcn.teamcity.awsS3Plugin.AWSS3BuildProcessAdapterHelper"/>
 
     <bean id="awsS3Adapter" class="com.dcn.teamcity.awsS3Plugin.adapters.AWSS3Adapter" />
 </beans>

@@ -19,6 +19,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.15</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
             <version>${teamcity-version}</version>

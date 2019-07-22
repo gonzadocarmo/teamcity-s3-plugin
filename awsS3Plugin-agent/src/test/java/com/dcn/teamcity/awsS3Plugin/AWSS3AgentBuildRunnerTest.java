@@ -41,7 +41,7 @@ public class AWSS3AgentBuildRunnerTest {
         when(agentRunningBuildMock.getCheckoutDirectory()).thenReturn(new File("tmp.txt"));
         when(buildRunnerContextMock.getBuild()).thenReturn(agentRunningBuildMock);
 
-        runner = new AWSS3AgentBuildRunner(extensionHolderMock, awsS3Adapter, helperMock);
+        runner = new AWSS3AgentBuildRunner(extensionHolderMock, awsS3Adapter);
     }
 
     @Test

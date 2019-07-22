@@ -3,6 +3,8 @@ package com.dcn.teamcity.awsS3Plugin;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.util.StringUtils;
@@ -10,6 +12,7 @@ import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.ExtensionHolder;
 import jetbrains.buildServer.agent.ArtifactsPreprocessor;
+import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsBuilder;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import jetbrains.buildServer.util.StringUtil;
@@ -23,11 +26,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by sg0216948 on 7/12/16.
  *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3BuildProcessAdapterHelper {
+
+    private BuildProgressLogger myLogger;
+
+    public AWSS3BuildProcessAdapterHelper withLogger(BuildProgressLogger logger){
+        this.myLogger = logger;
+        return this;
+    }
 
     public @NotNull BuildProblemData createBuildProblemData(String bucketName, String filePath, String exceptionMessage) {
         String bucketID = bucketName.length() <= 12 ? bucketName : bucketName.substring(0, 11);
@@ -47,14 +56,31 @@ public class AWSS3BuildProcessAdapterHelper {
         return BuildProblemData.createBuildProblem(id, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, exceptionMessage);
     }
 
-    public @NotNull AmazonS3 createClient(String AWSPublickKey, String AWSPrivateKey) {
+    public @NotNull AmazonS3 createClient(String AWSPublicKey, String AWSPrivateKey, String region) {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        return new AmazonS3Client(new BasicAWSCredentials(AWSPublickKey, AWSPrivateKey), clientConfiguration);
+        return createClientWithRegion(AWSPublicKey, AWSPrivateKey, region, clientConfiguration);
     }
 
-    public @NotNull AmazonS3 createClientWithProxy(String AWSPublickKey, String AWSPrivateKey, String proxyUrl) throws Exception {
+    public @NotNull AmazonS3 createClientWithProxy(String AWSPublicKey, String AWSPrivateKey, String region, String proxyUrl) throws Exception {
         ClientConfiguration clientConfiguration = this.createClientConfiguration(proxyUrl);
-        return new AmazonS3Client(new BasicAWSCredentials(AWSPublickKey, AWSPrivateKey), clientConfiguration);
+        return createClientWithRegion(AWSPublicKey, AWSPrivateKey, region, clientConfiguration);
+    }
+
+    private AmazonS3 createClientWithRegion(String publicKey, String privateKey, String region, ClientConfiguration clientConfiguration){
+        final Regions defaultRegion = Regions.DEFAULT_REGION;
+        Regions clientRegion;
+
+        AmazonS3 client = new AmazonS3Client(new BasicAWSCredentials(publicKey, privateKey), clientConfiguration);
+
+        try {
+          clientRegion = Regions.fromName(region);
+        } catch (IllegalArgumentException iae) {
+          myLogger.warning(String.format("Region '%s' not valid. Using default region: '%s'...", region, defaultRegion.getName()));
+          clientRegion = defaultRegion;
+        }
+
+        client.setRegion(Region.getRegion(clientRegion));
+        return client;
     }
 
     public @NotNull ClientConfiguration createClientConfiguration(String proxyUrl) throws Exception {
@@ -103,6 +129,7 @@ public class AWSS3BuildProcessAdapterHelper {
 
     public @NotNull AgentRunnerBuildParametersModel createModel(@NotNull final Map<String, String> runnerParameters) {
         final String bucketName = StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_BUCKET_NAME));
+        final String bucketRegion = StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_BUCKET_REGION));
         final String credentialsPublicKey = StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_CREDENTIALS_PUB_KEY));
         final String credentialsPrivateKey = StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_CREDENTIALS_PRIVATE_KEY));
         final String sourcePaths = runnerParameters.get(PluginConstants.UI_PARAM_CONTENT_PATHS);
@@ -110,6 +137,6 @@ public class AWSS3BuildProcessAdapterHelper {
         final String httpHeaderCacheControl = StringUtil.nullIfEmpty(StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_HTTP_HEADERS_CACHE_CONTROL)));
         final String httpProxy = StringUtils.trim(runnerParameters.get(PluginConstants.UI_PARAM_HTTP_PROXY));
 
-        return new AgentRunnerBuildParametersModel(bucketName, credentialsPublicKey, credentialsPrivateKey, needToEmptyBucket, sourcePaths, httpHeaderCacheControl, httpProxy);
+        return new AgentRunnerBuildParametersModel(bucketName, bucketRegion, credentialsPublicKey, credentialsPrivateKey, needToEmptyBucket, sourcePaths, httpHeaderCacheControl, httpProxy);
     }
 }
