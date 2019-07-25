@@ -12,6 +12,7 @@ import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +89,6 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
             hasFinished = true;
         } catch (RuntimeException e) {
             hasFinished = false;
-            myLogger.error("Failed: " + e.getMessage());
         }
     }
 
@@ -112,7 +112,7 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
         if (httpProxy != null) {
             try {
                 s3Client = helper.createClientWithProxy(publicKey, privateKey, region, httpProxy);
-            } catch (Exception e) {
+            } catch (MalformedURLException e) {
                 myLogger.warning(String.format(ERROR_PROXY, httpProxy));
                 s3Client = helper.createClient(publicKey, privateKey, region);
             }
@@ -122,7 +122,7 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
         return s3Client;
     }
 
-    private void uploadFilesToBucket(String bucketName, String sourcePaths, AmazonS3 s3Client, String cacheControlHeader) {
+    private void uploadFilesToBucket(String bucketName, String sourcePaths, AmazonS3 s3Client, String cacheControlHeader) throws RuntimeException {
         final String TARGET_NAME = "Upload to S3 bucket: " + bucketName;
         myLogger.targetStarted(TARGET_NAME);
 
@@ -145,19 +145,20 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
         if (totalCount > 0) {
             myLogger.message(TASK_COMPLETED_TEXT);
         } else {
-            interrupt();
             final String errorMsg = "No files to upload have been found!";
             myLogger.error(TASK_FAILED_TEXT + errorMsg);
             myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, errorMsg));
+            interrupt();
         }
         myLogger.targetFinished(TARGET_NAME);
     }
 
-    private void emptyBucketIfNeeded(String bucketName, AmazonS3 s3Client, boolean emptyBucket) {
+    private void emptyBucketIfNeeded(String bucketName, AmazonS3 s3Client, boolean emptyBucket) throws RuntimeException {
         final String TARGET_NAME = "Empty S3 bucket: " + bucketName;
 
         myLogger.targetStarted(TARGET_NAME);
         if (emptyBucket) {
+            myLogger.message("Cleaning bucket...");
             emptyBucket(bucketName, s3Client);
             checkIsInterrupted();
         } else {
@@ -173,9 +174,9 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
             awsS3Adapter.getUploadAdapter().uploadToBucket(bucketName, client, source, fileStringEntryValue, cacheControlHeader);
             myLogger.message("done transferring [" + source.getPath() + "]");
         } catch (AmazonClientException ace) {
-            interrupt();
             myLogger.error(TASK_FAILED_TEXT + ace.getMessage());
-            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, source.getPath(), ace.getMessage()));
+            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, source.getPath(), ace));
+            interrupt();
         }
     }
 
@@ -190,9 +191,9 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
             awsS3Adapter.getDeleteAdapter().deleteAllContentFromBucket(bucketName, client);
             myLogger.message(TASK_COMPLETED_TEXT);
         } catch (AmazonClientException ace) {
-            interrupt();
             myLogger.error(TASK_FAILED_TEXT + ace.getMessage());
-            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, ace.getMessage()));
+            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, ace));
+            interrupt();
         }
     }
 

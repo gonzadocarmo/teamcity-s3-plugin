@@ -19,6 +19,7 @@ import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Collection;
@@ -38,22 +39,29 @@ public class AWSS3BuildProcessAdapterHelper {
         return this;
     }
 
-    public @NotNull BuildProblemData createBuildProblemData(String bucketName, String filePath, String exceptionMessage) {
+    public @NotNull BuildProblemData createBuildProblemData(String bucketName, String filePath, Exception e) {
         String bucketID = bucketName.length() <= 12 ? bucketName : bucketName.substring(0, 11);
         String filePathID = filePath.length() <= 30 ? filePath : filePath.substring(filePath.length() - 30);
 
-        final String id = String.format("%s:%s:%s",
+        final String identity = String.format("%s:%s:%s",
                 bucketID,
                 filePathID,
                 Calendar.getInstance().getTimeInMillis());
-        return BuildProblemData.createBuildProblem(id, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, exceptionMessage);
+        return BuildProblemData.createBuildProblem(identity, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, e.getMessage(), e.getStackTrace().toString());
     }
 
-    public BuildProblemData createBuildProblemData(String bucketName, String exceptionMessage) {
-        final String id = String.format("%s:%s",
+    public BuildProblemData createBuildProblemData(String bucketName, Exception e) {
+        final String identity = String.format("%s:%s",
                 bucketName,
                 Calendar.getInstance().getTimeInMillis());
-        return BuildProblemData.createBuildProblem(id, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, exceptionMessage);
+        return BuildProblemData.createBuildProblem(identity, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, e.getMessage(), e.getStackTrace().toString());
+    }
+
+    public BuildProblemData createBuildProblemData(String bucketName, String message) {
+        final String identity = String.format("%s:%s",
+                bucketName,
+                Calendar.getInstance().getTimeInMillis());
+        return BuildProblemData.createBuildProblem(identity, BuildProblemTypes.TC_ERROR_MESSAGE_TYPE, message);
     }
 
     public @NotNull AmazonS3 createClient(String AWSPublicKey, String AWSPrivateKey, String region) {
@@ -61,7 +69,7 @@ public class AWSS3BuildProcessAdapterHelper {
         return createClientWithRegion(AWSPublicKey, AWSPrivateKey, region, clientConfiguration);
     }
 
-    public @NotNull AmazonS3 createClientWithProxy(String AWSPublicKey, String AWSPrivateKey, String region, String proxyUrl) throws Exception {
+    public @NotNull AmazonS3 createClientWithProxy(String AWSPublicKey, String AWSPrivateKey, String region, String proxyUrl) throws MalformedURLException {
         ClientConfiguration clientConfiguration = this.createClientConfiguration(proxyUrl);
         return createClientWithRegion(AWSPublicKey, AWSPrivateKey, region, clientConfiguration);
     }
@@ -83,7 +91,7 @@ public class AWSS3BuildProcessAdapterHelper {
         return client;
     }
 
-    public @NotNull ClientConfiguration createClientConfiguration(String proxyUrl) throws Exception {
+    public @NotNull ClientConfiguration createClientConfiguration(String proxyUrl) throws MalformedURLException {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         URL url = new URL(proxyUrl);
 

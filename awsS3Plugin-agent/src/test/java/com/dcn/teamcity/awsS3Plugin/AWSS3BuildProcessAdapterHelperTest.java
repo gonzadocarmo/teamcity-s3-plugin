@@ -36,9 +36,9 @@ public class AWSS3BuildProcessAdapterHelperTest {
     public void testCreateBuildProblemDataWithFilePath() throws Exception {
         final String bucket_name = "my-bucket-with-long-name";
         final String file_path = "/Users/somebody/Downloads/TeamCity/buildAgent/work/56eb2e988bd79b91/.gitignore";
-        final String exception_message = "my-bucket";
+        final Exception exception = new Exception("Error uploading some file...");
 
-        BuildProblemData result = helper.createBuildProblemData(bucket_name, file_path, exception_message);
+        BuildProblemData result = helper.createBuildProblemData(bucket_name, file_path, exception);
 
         System.out.println(result.getIdentity());
         System.out.println(result.getIdentity().length());
@@ -46,7 +46,7 @@ public class AWSS3BuildProcessAdapterHelperTest {
         assertTrue(result.getIdentity().contains("my-bucket-w" + ":" + "rk/56eb2e988bd79b91/.gitignore" + ":"));
 
         assertEquals(result.getType(), BuildProblemTypes.TC_ERROR_MESSAGE_TYPE);
-        assertEquals(result.getDescription(), exception_message);
+        assertEquals(result.getDescription(), exception.getMessage());
     }
 
     @Test

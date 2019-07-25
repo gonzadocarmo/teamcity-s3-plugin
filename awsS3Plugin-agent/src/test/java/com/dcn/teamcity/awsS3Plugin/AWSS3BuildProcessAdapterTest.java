@@ -13,6 +13,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +69,7 @@ public class AWSS3BuildProcessAdapterTest {
         final String httpProxy = "http://username@notvalid:::";
 
         mockBuilderCreateModel(bucketName, bucketRegion, "false", null, httpProxy);
-        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString(), anyString())).thenThrow(Exception.class);
+        when(processAdapterHelperMock.createClientWithProxy(anyString(), anyString(), anyString(), anyString())).thenThrow(MalformedURLException.class);
 
 
         adapter = new AWSS3BuildProcessAdapter(loggerMock, runnerParametersMock, agentCheckoutDirectoryMock, extensionHolderMock, awsS3AdapterMock, processAdapterHelperMock);
