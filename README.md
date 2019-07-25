@@ -21,9 +21,31 @@ As a Build Runner, it can be set up for each build configuration as a build step
 
 - An AWS User is needed. Refer to [Amazon Creating IAM Users](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console) documentation to create a new user if needed and obtain credentials data.
 
-- The user needs to have the following permissions on the bucket(s):
-  - List
-  - Upload/Delete
+- Create a IAM Policy such as the following and attach the policy to the user created above. The following example shows the minimum permissions this plugin needs:
+
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "VisualEditor0",
+                    "Effect": "Allow",
+                    "Action": [
+                        "s3:ListBucket",
+                        "s3:ListBucketVersions",
+                        "s3:PutObject",
+                        "s3:DeleteObject",
+                        "s3:DeleteObjectVersion",
+                        "s3:DeleteObjectVersionTagging",
+                        "s3:DeleteObjectTagging"
+                    ],
+                    "Resource": [
+                        "arn:aws:s3:::bucketNameHere",
+                        "arn:aws:s3:::bucketNameHere/*"
+                    ]
+                }
+            ]
+        }
+
 
 ## Extending the Plugin
 
