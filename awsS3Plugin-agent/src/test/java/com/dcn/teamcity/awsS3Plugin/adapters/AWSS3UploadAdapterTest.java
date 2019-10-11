@@ -1,6 +1,7 @@
 package com.dcn.teamcity.awsS3Plugin.adapters;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.BeforeMethod;
@@ -8,8 +9,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -45,7 +45,12 @@ public class AWSS3UploadAdapterTest {
         assertEquals(bucketName, argument.getValue().getBucketName());
         assertEquals(source.getName(), argument.getValue().getKey());
         assertEquals(source, argument.getValue().getFile());
-        assertNull(argument.getValue().getMetadata());
+        final PutObjectRequest request = argument.getValue();
+        assertNotNull(request);
+        final ObjectMetadata metadata = request.getMetadata();
+        assertNotNull(metadata);
+        assertNotNull(metadata.getContentType());
+        assertNull(metadata.getCacheControl());
     }
 
     @Test
@@ -60,7 +65,12 @@ public class AWSS3UploadAdapterTest {
         assertEquals(bucketName, argument.getValue().getBucketName());
         assertEquals(source.getName(), argument.getValue().getKey());
         assertEquals(source, argument.getValue().getFile());
-        assertNull(argument.getValue().getMetadata());
+        final PutObjectRequest request = argument.getValue();
+        assertNotNull(request);
+        final ObjectMetadata metadata = request.getMetadata();
+        assertNotNull(metadata);
+        assertNotNull(metadata.getContentType());
+        assertNull(metadata.getCacheControl());
     }
 
     @Test
@@ -75,7 +85,12 @@ public class AWSS3UploadAdapterTest {
         assertEquals(bucketName, argument.getValue().getBucketName());
         assertEquals(destinationDir + "/" + source.getName(), argument.getValue().getKey());
         assertEquals(source, argument.getValue().getFile());
-        assertNull(argument.getValue().getMetadata());
+        final PutObjectRequest request = argument.getValue();
+        assertNotNull(request);
+        final ObjectMetadata metadata = request.getMetadata();
+        assertNotNull(metadata);
+        assertNotNull(metadata.getContentType());
+        assertNull(metadata.getCacheControl());
     }
 
     @Test
