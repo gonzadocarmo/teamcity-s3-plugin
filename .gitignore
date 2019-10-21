@@ -10,3 +10,7 @@ hs_err_pid*
 
 target/
 out/
+
+# JetBrains files
+.idea
+*.iml
