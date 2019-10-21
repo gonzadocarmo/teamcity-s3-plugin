@@ -13,7 +13,7 @@ As a Build Runner, it can be set up for each build configuration as a build step
 
 ## Installing the Plugin
 
-- Download the [current version of the plugin](https://drive.google.com/open?id=0BxGdXmEjPnyPa2thM3FCdUh0SmM)
+- Download the [current version of the plugin](https://github.com/gonzadocarmo/teamcity-s3-plugin/releases)
 
 - Refer to [TeamCity Installing Additional Plugins](https://confluence.jetbrains.com/display/TCD9/Installing+Additional+Plugins) documentation.
 
