@@ -4,11 +4,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.mockito.ArgumentCaptor;
-import org.springframework.util.MimeTypeUtils;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -129,8 +130,9 @@ public class AWSS3UploadAdapterTest {
     }
 
     @Test
-    public void testUploadToBucketWhenContentTypeUnDetected() throws Exception {
+    public void testUploadToBucketWhenContentTypeThrowsIOException() throws Exception {
         final File source = File.createTempFile("temp", ".bla");
+        Files.setPosixFilePermissions(source.toPath(), PosixFilePermissions.fromString("---------"));
         final String destinationDir = "src/here";
 
         adapter.uploadToBucket(bucketName, amazonS3Client, source, destinationDir, httpHeaderCacheControl);

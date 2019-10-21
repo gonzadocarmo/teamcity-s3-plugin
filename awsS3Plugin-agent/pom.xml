@@ -20,6 +20,13 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.22</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
             <artifactId>awsS3Plugin-common</artifactId>
             <version>0.1.1</version>
