@@ -11,27 +11,34 @@ import java.util.Iterator;
  */
 public class AWSS3DeleteAdapter {
 
-    public void deleteAllContentFromBucket(String bucketName, AmazonS3 s3client) throws AmazonClientException {
+    public void deleteAllContentFromBucket(String bucketName, AmazonS3 s3Client) throws AmazonClientException {
+        ListObjectsV2Request request = new ListObjectsV2Request().withBucketName(bucketName);
+        ListObjectsV2Result result;
 
-        ObjectListing objectListing = s3client.listObjects(bucketName);
+        do {
+            result = s3Client.listObjectsV2(request);
 
-        while (true) {
-            for (Iterator<?> iterator = objectListing.getObjectSummaries().iterator(); iterator.hasNext(); ) {
-                S3ObjectSummary objectSummary = (S3ObjectSummary) iterator.next();
-                s3client.deleteObject(bucketName, objectSummary.getKey());
+            for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
+                s3Client.deleteObject(bucketName, objectSummary.getKey());
             }
 
-            if (objectListing.isTruncated()) {
-                objectListing = s3client.listNextBatchOfObjects(objectListing);
+            String token = result.getNextContinuationToken();
+            request.setContinuationToken(token);
+        } while (result.isTruncated());
+
+        VersionListing versionList = s3Client.listVersions(new ListVersionsRequest().withBucketName(bucketName));
+        while (true) {
+            Iterator<S3VersionSummary> versionSummaryIterator = versionList.getVersionSummaries().iterator();
+            while (versionSummaryIterator.hasNext()) {
+                S3VersionSummary vs = versionSummaryIterator.next();
+                s3Client.deleteVersion(bucketName, vs.getKey(), vs.getVersionId());
+            }
+
+            if (versionList.isTruncated()) {
+                versionList = s3Client.listNextBatchOfVersions(versionList);
             } else {
                 break;
             }
-        }
-        ;
-        VersionListing list = s3client.listVersions(new ListVersionsRequest().withBucketName(bucketName));
-        for (Iterator<?> iterator = list.getVersionSummaries().iterator(); iterator.hasNext(); ) {
-            S3VersionSummary s = (S3VersionSummary) iterator.next();
-            s3client.deleteVersion(bucketName, s.getKey(), s.getVersionId());
         }
     }
 }
