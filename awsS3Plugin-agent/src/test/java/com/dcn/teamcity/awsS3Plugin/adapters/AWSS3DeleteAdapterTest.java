@@ -20,23 +20,23 @@ public class AWSS3DeleteAdapterTest {
     private String bucketName;
 
     @BeforeMethod
-    public void setUp() throws Exception {
+    public void setUp() {
         bucketName = "my-bucket";
         adapter = new AWSS3DeleteAdapter();
         amazonS3Client = mock(AmazonS3.class);
     }
 
     @Test
-    public void tesDeleteAllContentFromBucket() throws Exception {
-        ObjectListing objectListing = createObjectListing();
+    public void tesDeleteAllContentFromBucketWhenNoVersioning() {
+        ListObjectsV2Result objectListing = createObjectListing();
 
-        when(amazonS3Client.listObjects(any(String.class))).thenReturn(objectListing);
+        when(amazonS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(objectListing);
         when(amazonS3Client.listVersions(any(ListVersionsRequest.class))).thenReturn(new VersionListing());
 
 
         adapter.deleteAllContentFromBucket(bucketName, amazonS3Client);
 
-        verify(amazonS3Client, times(objectListing.getObjectSummaries().size())).deleteObject(any(String.class), any(String.class));
+        verify(amazonS3Client, times(objectListing.getObjectSummaries().size())).deleteObject(eq(bucketName), any(String.class));
         verify(amazonS3Client).deleteObject(bucketName, objectListing.getObjectSummaries().get(0).getKey());
         verify(amazonS3Client).deleteObject(bucketName, objectListing.getObjectSummaries().get(1).getKey());
         verify(amazonS3Client).deleteObject(bucketName, objectListing.getObjectSummaries().get(2).getKey());
@@ -49,13 +49,12 @@ public class AWSS3DeleteAdapterTest {
     }
 
     @Test
-    public void tesDeleteAllContentFromBucketWithVersioning() throws Exception {
-        ObjectListing objectListing = createObjectListing();
+    public void tesDeleteAllContentFromBucketWithVersioning() {
+        ListObjectsV2Result objectListing = createObjectListing();
         VersionListing versionListing = createVersionListing();
 
-        when(amazonS3Client.listObjects(any(String.class))).thenReturn(objectListing);
+        when(amazonS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(objectListing);
         when(amazonS3Client.listVersions(any(ListVersionsRequest.class))).thenReturn(versionListing);
-
 
         adapter.deleteAllContentFromBucket(bucketName, amazonS3Client);
 
@@ -63,7 +62,7 @@ public class AWSS3DeleteAdapterTest {
         verify(amazonS3Client).listVersions(argument.capture());
         assertEquals(bucketName, argument.getValue().getBucketName());
 
-        verify(amazonS3Client, times(versionListing.getVersionSummaries().size())).deleteVersion(any(String.class), any(String.class), any(String.class));
+        verify(amazonS3Client, times(versionListing.getVersionSummaries().size())).deleteVersion(eq(bucketName), any(String.class), any(String.class));
         verify(amazonS3Client).deleteVersion(bucketName, versionListing.getVersionSummaries().get(0).getKey(), versionListing.getVersionSummaries().get(0).getVersionId());
         verify(amazonS3Client).deleteVersion(bucketName, versionListing.getVersionSummaries().get(1).getKey(), versionListing.getVersionSummaries().get(1).getVersionId());
     }
@@ -84,7 +83,7 @@ public class AWSS3DeleteAdapterTest {
     }
 
     @NotNull
-    private ObjectListing createObjectListing() {
+    private ListObjectsV2Result createObjectListing() {
         S3ObjectSummary s3ObjectSummary1 = new S3ObjectSummary();
         s3ObjectSummary1.setKey("one");
         S3ObjectSummary s3ObjectSummary2 = new S3ObjectSummary();
@@ -92,10 +91,11 @@ public class AWSS3DeleteAdapterTest {
         S3ObjectSummary s3ObjectSummary3 = new S3ObjectSummary();
         s3ObjectSummary3.setKey("three");
 
-        ObjectListing objectListing = new ObjectListing();
-        objectListing.getObjectSummaries().add(s3ObjectSummary1);
-        objectListing.getObjectSummaries().add(s3ObjectSummary2);
-        objectListing.getObjectSummaries().add(s3ObjectSummary3);
-        return objectListing;
+        ListObjectsV2Result result = new ListObjectsV2Result();
+        result.getObjectSummaries().add(s3ObjectSummary1);
+        result.getObjectSummaries().add(s3ObjectSummary2);
+        result.getObjectSummaries().add(s3ObjectSummary3);
+        return result;
     }
+
 }

@@ -8,24 +8,18 @@ import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildFinishedStatus;
 import jetbrains.buildServer.agent.BuildProcessAdapter;
 import jetbrains.buildServer.agent.BuildProgressLogger;
-import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.List;
 import java.util.Map;
 
 /**
- *
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
  */
 public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
 
     protected final BuildProgressLogger myLogger;
-    private volatile boolean hasFinished;
-    private volatile boolean hasFailed;
-    private volatile boolean isInterrupted;
     private final Map<String, String> runnerParametersMap;
     private final File checkoutDirectory;
     private final ExtensionHolder extensionHolder;
@@ -34,6 +28,10 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
     private final String TASK_COMPLETED_TEXT = "Done";
     private final String TASK_FAILED_TEXT = "Failed: ";
     private final String ERROR_PROXY = "HTTP Proxy URL not valid: '%s'. Skipping...";
+    private volatile boolean hasFinished;
+    private volatile boolean hasFailed;
+    private volatile boolean isInterrupted;
+
 
     public AWSS3BuildProcessAdapter(@NotNull final BuildProgressLogger logger,
                                     @NotNull final Map<String, String> runnerParameters,
@@ -47,7 +45,7 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
         runnerParametersMap = runnerParameters;
         checkoutDirectory = agentCheckoutDirectory;
         this.extensionHolder = extensionHolder;
-        this.awsS3Adapter = awsS3Adapter;
+        this.awsS3Adapter = awsS3Adapter.withLogger(logger);
         helper = processAdapterHelper;
     }
 
@@ -68,7 +66,8 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
     }
 
     @Override
-    public @NotNull BuildFinishedStatus waitFor() throws RunBuildException {
+    public @NotNull
+    BuildFinishedStatus waitFor() throws RunBuildException {
         while (!isInterrupted() && !hasFinished) {
             try {
                 Thread.sleep(1000);
@@ -122,35 +121,20 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
         return s3Client;
     }
 
-    private void uploadFilesToBucket(String bucketName, String sourcePaths, AmazonS3 s3Client, String cacheControlHeader) throws RuntimeException {
+    private void uploadFilesToBucket(String bucketName, String sourcePaths, AmazonS3 s3Client, final String cacheControlHeader) throws RuntimeException {
         final String TARGET_NAME = "Upload to S3 bucket: " + bucketName;
         myLogger.targetStarted(TARGET_NAME);
 
-        int totalCount = 0;
-        final List<ArtifactsCollection> myArtifacts = helper.getArtifactsCollections(sourcePaths, extensionHolder, checkoutDirectory);
-        for (ArtifactsCollection artifactsCollection : myArtifacts) {
-            int count = 0;
-            for (Map.Entry<File, String> fileStringEntry : artifactsCollection.getFilePathMap().entrySet()) {
-                final File source = fileStringEntry.getKey();
-
-                uploadFile(bucketName, s3Client, source, fileStringEntry.getValue(), cacheControlHeader);
-                checkIsInterrupted();
-
-                count++;
-                totalCount++;
-            }
-            myLogger.message("Uploaded [" + count + "] files for [" + artifactsCollection.getSourcePath() + "] pattern");
-        }
-
-        if (totalCount > 0) {
+        try {
+            awsS3Adapter.getUploadAdapter().uploadToBucket(bucketName, s3Client, helper.getArtifactsCollections(sourcePaths, extensionHolder, checkoutDirectory), cacheControlHeader);
+            checkIsInterrupted();
             myLogger.message(TASK_COMPLETED_TEXT);
-        } else {
-            final String errorMsg = "No files to upload have been found!";
-            myLogger.error(TASK_FAILED_TEXT + errorMsg);
-            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, errorMsg));
+            myLogger.targetFinished(TARGET_NAME);
+        } catch (Exception e) {
+            myLogger.error(TASK_FAILED_TEXT + e.getMessage());
+            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, e.getMessage()));
             interrupt();
         }
-        myLogger.targetFinished(TARGET_NAME);
     }
 
     private void emptyBucketIfNeeded(String bucketName, AmazonS3 s3Client, boolean emptyBucket) throws RuntimeException {
@@ -165,19 +149,6 @@ public class AWSS3BuildProcessAdapter extends BuildProcessAdapter {
             myLogger.message("Option not set. Skipping...");
         }
         myLogger.targetFinished(TARGET_NAME);
-    }
-
-    private void uploadFile(String bucketName, AmazonS3 client, File source, String fileStringEntryValue, String cacheControlHeader) {
-        myLogger.message("Transferring [" + source.getAbsolutePath() + "] to [" + fileStringEntryValue + "]");
-
-        try {
-            awsS3Adapter.getUploadAdapter().uploadToBucket(bucketName, client, source, fileStringEntryValue, cacheControlHeader);
-            myLogger.message("done transferring [" + source.getPath() + "]");
-        } catch (AmazonClientException ace) {
-            myLogger.error(TASK_FAILED_TEXT + ace.getMessage());
-            myLogger.logBuildProblem(helper.createBuildProblemData(bucketName, source.getPath(), ace));
-            interrupt();
-        }
     }
 
     protected void checkIsInterrupted() throws RuntimeException {

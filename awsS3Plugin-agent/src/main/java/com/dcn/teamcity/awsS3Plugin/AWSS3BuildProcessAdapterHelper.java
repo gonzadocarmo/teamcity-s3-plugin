@@ -2,11 +2,11 @@ package com.dcn.teamcity.awsS3Plugin;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.StringUtils;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.BuildProblemTypes;
@@ -78,8 +78,6 @@ public class AWSS3BuildProcessAdapterHelper {
         final Regions defaultRegion = Regions.DEFAULT_REGION;
         Regions clientRegion;
 
-        AmazonS3 client = new AmazonS3Client(new BasicAWSCredentials(publicKey, privateKey), clientConfiguration);
-
         try {
           clientRegion = Regions.fromName(region);
         } catch (IllegalArgumentException iae) {
@@ -87,8 +85,11 @@ public class AWSS3BuildProcessAdapterHelper {
           clientRegion = defaultRegion;
         }
 
-        client.setRegion(Region.getRegion(clientRegion));
-        return client;
+        return AmazonS3ClientBuilder.standard()
+                .withRegion(clientRegion)
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(publicKey, privateKey)))
+                .withClientConfiguration(clientConfiguration)
+                .build();
     }
 
     public @NotNull ClientConfiguration createClientConfiguration(String proxyUrl) throws MalformedURLException {
