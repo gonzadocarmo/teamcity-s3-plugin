@@ -10,7 +10,7 @@
         <teamcity-version>9.0.3</teamcity-version>
         <testng-version>6.9.10</testng-version>
         <mockito-version>3.5.2</mockito-version>
-        <aws-version>1.11.837</aws-version>
+        <aws-version>1.11.845</aws-version>
     </properties>
     <repositories>
         <repository>
