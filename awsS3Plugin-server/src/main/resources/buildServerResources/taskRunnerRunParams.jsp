@@ -8,7 +8,6 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="awsRegions" value="<%=Regions.values()%>" scope="request"/>
-<c:set var="awsRegionValue" value="${propertiesBean.properties[UI_PARAM_BUCKET_REGION] ? propertiesBean.properties[UI_PARAM_BUCKET_REGION] : Regions.DEFAULT_REGION.getName()}"/>
 
 <l:settingsGroup title="Amazon S3 bucket">
     <tr>
@@ -34,7 +33,7 @@
         <td>
             <props:selectProperty name="${UI_PARAM_BUCKET_REGION}" className="longField">
                 <c:forEach items="${awsRegions}" var="awsRegion">
-                    <props:option value="${awsRegion.getName()}" currValue="${awsRegionValue}">${awsRegion.getName()}</props:option>
+                    <props:option value="${awsRegion.getName()}">${awsRegion.getName()}</props:option>
                 </c:forEach>
             </props:selectProperty>
             <span class="error" id="error_${UI_PARAM_BUCKET_REGION}"></span>
