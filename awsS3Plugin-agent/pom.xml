@@ -6,7 +6,7 @@
     <parent>
         <artifactId>awsS3Plugin</artifactId>
         <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
-        <version>0.1.4</version>
+        <version>0.1.5</version>
     </parent>
 
     <artifactId>awsS3Plugin-agent</artifactId>
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
             <artifactId>awsS3Plugin-common</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.5</version>
             <scope>compile</scope>
         </dependency>
 

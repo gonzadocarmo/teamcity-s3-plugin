@@ -62,10 +62,34 @@ public class AWSS3UploadAdapter {
 
     private void uploadFiles(String bucketName, ArtifactsCollection artifactsCollection, ObjectMetadataProvider omp, TransferManager tm) throws InterruptedException, SdkClientException {
         List<File> filesList = Arrays.asList(artifactsCollection.getFilePathMap().keySet().toArray(new File[0]));
-        String virtualDirectoryKeyPrefix = artifactsCollection.getFilePathMap().values().toArray(new String[0])[0];
-        File targetDirectory = filesList.get(0).getParentFile();
+        File firstFile = filesList.get(0);
+        String firstFilePath = artifactsCollection.getFilePathMap().values().toArray(new String[0])[0];
+        
+        // For example - we create artifact filter as "dist => some/dir"
+        // So artifactsCollection.getTargetPath() will be "some/dir", and we could use it as virtual key prefix
+        // Next, we need to get common directory path. 
+        // In FilePathMap we will get something like this:
+        //   /opt/teamcity/buildAgentFull/work/hash/dist/css/some.css => some/dir/css
+        //   /opt/teamcity/buildAgentFull/work/hash/dist/css/some1.css => some/dir/css
+        //   /opt/teamcity/buildAgentFull/work/hash/dist/js/some.js => some/dir/js
+        // We need to find common directory (/opt/teamcity/buildAgentFull/work/hash/dist)
+        // Length of path of file relative to key path: firstFilePath.length() - target_len;
+        // For our example it will be length of string "/css"
+        int target_len = artifactsCollection.getTargetPath().length();
+        if (artifactsCollection.getTargetPath().endsWith(File.separator))
+            target_len -= File.separator.length();
+        int relativeDirLength = firstFilePath.length() - target_len;
 
-        MultipleFileUpload xfer = tm.uploadFileList(bucketName, virtualDirectoryKeyPrefix, targetDirectory, filesList, omp);
+        // Index of last char in common dir path: path.length() - (fileName.length() + 1 + relativeDirLength)
+
+        // /opt/teamcity/buildAgentFull/work/hash/dist /css                  /some.css
+        // <                commonDir                > < relativeDirLength > < firstFile.getName().length() + File.separator.length() >
+        // <                commonDir                > <                                   filePath                                   >
+        int filePathLen = firstFile.getName().length() + File.separator.length() + relativeDirLength;
+        String common_dir_path = firstFile.getAbsolutePath().substring(0, firstFile.getAbsolutePath().length() - filePathLen);
+        myLogger.message(String.format("Detected common directory: %s", common_dir_path));
+
+        MultipleFileUpload xfer = tm.uploadFileList(bucketName, artifactsCollection.getTargetPath(), new File(common_dir_path), filesList, omp);
         showMultiUploadProgress(xfer);
         myLogger.message("Done");
     }

@@ -4,18 +4,22 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.dcn.teamcity.awsS3Plugin</groupId>
     <artifactId>awsS3Plugin</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>pom</packaging>
     <properties>
-        <teamcity-version>9.0.3</teamcity-version>
-        <testng-version>6.9.10</testng-version>
-        <mockito-version>3.5.2</mockito-version>
-        <aws-version>1.11.845</aws-version>
+        <teamcity-version>2021.2</teamcity-version>
+        <testng-version>7.6.0</testng-version>
+        <mockito-version>4.6.1</mockito-version>
+        <aws-version>1.12.245</aws-version>
     </properties>
     <repositories>
         <repository>
             <id>JetBrains</id>
             <url>http://repository.jetbrains.com/all</url>
+        </repository>
+        <repository>
+            <id>jetbrains-all</id>
+            <url>https://download.jetbrains.com/teamcity-repository</url>
         </repository>
     </repositories>
     <pluginRepositories>
