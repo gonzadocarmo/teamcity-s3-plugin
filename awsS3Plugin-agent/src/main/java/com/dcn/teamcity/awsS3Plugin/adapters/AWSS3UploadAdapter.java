@@ -8,9 +8,7 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.impl.artifacts.ArtifactsCollection;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author <a href="mailto:gonzalo.docarmo@gmail.com">Gonzalo G. do Carmo Norte</a>
@@ -61,13 +59,25 @@ public class AWSS3UploadAdapter {
     }
 
     private void uploadFiles(String bucketName, ArtifactsCollection artifactsCollection, ObjectMetadataProvider omp, TransferManager tm) throws InterruptedException, SdkClientException {
-        List<File> filesList = Arrays.asList(artifactsCollection.getFilePathMap().keySet().toArray(new File[0]));
-        String virtualDirectoryKeyPrefix = artifactsCollection.getFilePathMap().values().toArray(new String[0])[0];
-        File targetDirectory = filesList.get(0).getParentFile();
+        String virtualDirectoryKeyPrefix = artifactsCollection.getTargetPath();
+        Set<File> filesSet = artifactsCollection.getFilePathMap().keySet();
+        ArrayList<File> filesList = new ArrayList<>(filesSet);
+        File commonDirectory = findCommonDirectory(filesList);
 
-        MultipleFileUpload xfer = tm.uploadFileList(bucketName, virtualDirectoryKeyPrefix, targetDirectory, filesList, omp);
+        MultipleFileUpload xfer = tm.uploadFileList(bucketName, virtualDirectoryKeyPrefix, commonDirectory, filesList, omp);
         showMultiUploadProgress(xfer);
         myLogger.message("Done");
+    }
+
+    private File findCommonDirectory(List<File> files) {
+        if (files.size() == 0) throw new IllegalArgumentException("Empty");
+        String prefix = files.get(0).getParentFile().getAbsolutePath();
+        for (int i = 1; i < files.size(); i++)
+            while (files.get(i).getParentFile().getAbsolutePath().indexOf(prefix) != 0) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+                if (prefix.isEmpty()) throw new IllegalStateException("Not found");
+            }
+        return new File(prefix);
     }
 
     private void showMultiUploadProgress(MultipleFileUpload multi_upload) throws SdkClientException, InterruptedException {

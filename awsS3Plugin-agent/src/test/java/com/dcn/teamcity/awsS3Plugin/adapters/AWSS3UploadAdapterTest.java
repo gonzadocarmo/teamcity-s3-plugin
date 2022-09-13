@@ -19,6 +19,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static org.mockito.Mockito.*;
@@ -73,10 +75,14 @@ public class AWSS3UploadAdapterTest {
         adapter = new AWSS3UploadAdapter().withLogger(loggerMock);
         amazonS3Client = Mockito.mock(AmazonS3.class);
         source = File.createTempFile("temp", ".txt");
-        source1 = File.createTempFile("temp", ".pdf");
-        source2 = File.createTempFile("temp", ".gif");
+        File sub1 = Files.createTempDirectory("sub1").toFile();
+        source1 = File.createTempFile("temp", ".pdf", sub1);
+        File sub2 = Files.createTempDirectory("sub2").toFile();
+        source2 = File.createTempFile("temp", ".gif", sub2);
         source.deleteOnExit();
+        sub1.deleteOnExit();
         source1.deleteOnExit();
+        sub2.deleteOnExit();
         source2.deleteOnExit();
 
         destinationDir = "src/here";
@@ -141,7 +147,8 @@ public class AWSS3UploadAdapterTest {
     public void testUploadToBucketWhenFilesToUpload() throws Exception {
         adapter.uploadToBucket(bucketName, amazonS3Client, myArtifacts, httpHeaderCacheControl);
 
-        verify(tm, times(2)).uploadFileList(eq(bucketName), anyString(), eq(source1.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
+        verify(tm).uploadFileList(eq(bucketName), anyString(), eq(source.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
+        verify(tm).uploadFileList(eq(bucketName), anyString(), eq(source2.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
 
         verify(loggerMock, times(2)).message("Done");
         verify(loggerMock, times(2)).activityStarted(anyString(), eq("This is one batch of files"));
@@ -164,7 +171,8 @@ public class AWSS3UploadAdapterTest {
         noFilesOnSecondDirectory.add(new ArtifactsCollection("", "", new HashMap<File, String>()));
         adapter.uploadToBucket(bucketName, amazonS3Client, noFilesOnSecondDirectory, httpHeaderCacheControl);
 
-        verify(tm, times(2)).uploadFileList(eq(bucketName), anyString(), eq(source1.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
+        verify(tm).uploadFileList(eq(bucketName), anyString(), eq(source.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
+        verify(tm).uploadFileList(eq(bucketName), anyString(), eq(source2.getParentFile()), ArgumentMatchers.<File>anyList(), any(ObjectMetadataProvider.class));
 
         verify(loggerMock, times(2)).message("Done");
         verify(loggerMock, times(3)).activityStarted(anyString(), eq("This is one batch of files"));
